@@ -1,4 +1,7 @@
 \documentclass[11pt,a4paper]{article}
+\usepackage{geometry}
+\geometry{a4paper,scale=0.86}
+
 \usepackage{CJKutf8}%支持中文 
 \usepackage{color}
 \usepackage{amsmath}
@@ -45,8 +48,8 @@
     breaklines = true
 }
 \uchyph=0
-\lefthyphenmin=2
-\righthyphenmin=2
+\lefthyphenmin=1
+\righthyphenmin=1
 
 \title{MultiDalitz简介}
 \author{X.X Ma}
@@ -55,7 +58,10 @@
 \begin{CJK*}{UTF8}{gbsn}
 \maketitle
 \section{前言}
-这个软件包“MultiDalitz”专为$J/\psi \to e^{+} e^{-} K^{+} K^{-} \pi^{0}$ 而写。“Multi”意为多，“Dalitz”意为dalitz分析，合起来是多个dalitz的联合分波分析，这是由于$\eta(1405)$ 和$\eta(1475)$难分开，但是各自的dalitz动力学又迥然不同，必须同时对它们的dalit联合拟合。这个软件包目前放在GitHub上，可以任意获取使用。
+这个软件包“MultiDalitz”专为$J/\psi \to e^{+} e^{-} K^{+} K^{-} \pi^{0}$
+而写。“Multi”意为多，“Dalitz”意为dalitz分析，整体的意义是多个dalitz的联合分波分析，
+这是由于$\eta(1405)$和$\eta(1475)$难分开，但是各自的动力学又迥然不同，必须同时对
+它们的dalitz plot进行联合拟合。这个软件包目前放在GitHub上，可以任意获取使用。
 \section{软件包的安装}
 在shell的命令行，可以用git直接获取源程序
 \begin{lstlisting}[language=bash] 
@@ -66,8 +72,109 @@
  cd MultiDalitz
  make
 \end{lstlisting}
-\section{关于数学部分}
-数学、中英文皆可以混排。You can intersperse math, Chinese and English (Latin script) without adding extra environments.
+编译完成后会自动在文件夹lib下生成一个.lib结尾的链接文件，名字为libKsKsK.so，在ROOT里面直接调用这个lib文件就可以使用
+这个包。具体的调用语法为
+\begin{lstlisting}[language=c++] 
+ gSystem->Load("/path/to/lib/libKsKsK.so");
+\end{lstlisting}
+需要提供到libKsKsK.so的完整路径。
+
+\section{使用}
+\subsection{准备工作}
+需要提供三个样本，a)data文件，b)PHSP MC文件，c)未经事例挑选的truth信息文件。需要注意的是样本b，c需要来自同一批MC样本，
+因为程序需要加权平均求效率。
+文件的格式为.txt，每三行是一个事例，存储的模板为
+\begin{lstlisting}[language=c++] 
+ E1 px1 py1 pz1
+ E2 px2 py2 pz2
+ E3 px3 py3 pz3 weight
+\end{lstlisting}
+我们约定第一行表示第“1”个粒子的信息,记为A，依次类推。比如可以选择A、B、C分别为$K^{+}$、$K^{-}$、 $\pi^{0}$。weight为该是事例的权重，用来加权处理系统误差。
+约定a、b、c的文件名分别是Data.dat, PHSP.dat, Frac.dat。
+
+\subsection{声明}
+类的声明为
+\begin{lstlisting}[language=c++] 
+ MultiDalitPdf ksksKpdf("ksksKpdf", "ksksKpdf",
+            v11, v12, v13, v14, v21, v22, v23, v24, v31, v32, v33, v34,
+            PHSPdat);
+\end{lstlisting}
+其中$v11$等变量为四动量信息。
+\begin{lstlisting}[language=c++] 
+  double high = 1.8865;
+  double low = 0-high;
+  const double pi = 3.1415926*4;
+  RooRealVar v11("v11", "v11", low, high);
+  RooRealVar v12("v12", "v12", low, high);
+  RooRealVar v13("v13", "v13", low, high);
+  RooRealVar v14("v14", "v14", low, high);
+  RooRealVar v21("v21", "v21", low, high);
+  RooRealVar v22("v22", "v22", low, high);
+  RooRealVar v23("v23", "v23", low, high);
+  RooRealVar v24("v24", "v24", low, high);
+  RooRealVar v31("v31", "v31", low, high);
+  RooRealVar v32("v32", "v32", low, high);
+  RooRealVar v33("v33", "v33", low, high);
+  RooRealVar v34("v34", "v34", low, high);
+\end{lstlisting}
+设置好Frac.dat
+\begin{lstlisting}[language=c++] 
+ ksksKpdf.setFracDat(Fracdat);
+\end{lstlisting}
+添加母粒子
+\begin{lstlisting}[language=c++] 
+ RooRealVar spin0("spin0", "spin0",  0);
+ spin0.setConstant();
+ RooRealVar rRes("rRes", "", 3);
+ rRes.setConstant();
+ RooRealVar meta1475("meta1475", "meta1475", 1475E-3);
+ meta1475.setConstant();
+ RooRealVar weta1475("weta1475", "weta1475", 90E-3, 10e-3, 200e-3);
+ //weta1475.setConstant();
+ ksksKpdf.configMother("eta(1475)", //the name of this resonance
+     "eta(1475)", // the title
+     LineShape::RBW, // the lineshape: you can choose from RBW, BW, GS, Flatte, Flat.
+     RooArgList(spin0, rRes, meta1475, weta1475) // the configure number: spin, effective radius, mass, width 
+     );
+\end{lstlisting}
+添加共振态
+\begin{lstlisting}[language=c++]
+ const int S_WAVE(0);
+ ksksKpdf.addResonance("a0_980", 
+                       "eta(1405)", // this resonance from "eta(1405)"
+                        LineShape::a980_0, // the lineshape
+                        DecayType::AB, // this resonance decay into A,B
+                        Rhoa0_980, Phia0_980,  // magnitude and phase angle
+                        RooArgList(spin0, rRes, ma0, gPiEtaa0 , gKK2a0), // configure
+                        S_WAVE // the a_0 and pi0 form  a S-wave
+                        );
+\end{lstlisting}
+
+读取Data.dat
+\begin{lstlisting}[language=c++]
+RooArgSet theSet1, theSet2, theSet3;
+    theSet1.add(RooArgSet(v11, v12, v13, v14, v21, v22, v23, v24));
+    theSet2.add(RooArgSet(v31, v32, v33, v34));
+    theSet3.add(RooArgSet(weight));
+    RooArgSet theSet4(theSet1, theSet2, "");
+    RooArgSet theSet(theSet4, theSet3, "");
+
+    RooDataSet *data = RooDataSet::read(Datadat, theSet);
+    data->Print();
+
+    RooDataSet *datWeight = new RooDataSet(data->GetName(), data->GetTitle(),
+                data,*data->get(), 0, weight.GetName());
+    datWeight->Print();
+\end{lstlisting}
+开始拟合
+\begin{lstlisting}[language=c++]
+ RooFitResult *result = ksksKpdf.fitTo(*datWeight, Save(kTRUE));
+\end{lstlisting}
+获取分支比，并得到拟合结果
+\begin{lstlisting}[language=c++]
+ ksksKpdf.fitFractions(cout);
+ ksksKpdf.project("project.root");
+\end{lstlisting}
 
 \end{CJK*}
 
