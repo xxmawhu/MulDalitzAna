@@ -1,0 +1,74 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{CJKutf8}%支持中文 
+\usepackage{color}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{overpic}
+\usepackage{authblk}
+\usepackage{epsfig}
+\usepackage{epstopdf}
+\usepackage{colortbl}
+\usepackage{multirow}
+\usepackage{listings} 
+\definecolor{gongnvlan}{rgb}{0.15,0.39,0.46}
+\definecolor{tuerqi}{rgb}{0.0,0.587,0.412}
+\definecolor{juhong}{rgb}{0.80,0.20,0.00}
+\definecolor{orgion}{rgb}{0.95,0.95,0.92}
+\definecolor{gold}{rgb}{0.50,0.42,0.05}
+\definecolor{qianlan}{rgb}{0.5, 0.3, 0.36}
+\lstset{
+    basicstyle = \footnotesize,
+    backgroundcolor= \color{orgion},
+    keywordstyle= \color{tuerqi},
+    commentstyle= \color{juhong}, 
+    frame=shadowbox,
+    rulesepcolor= \color{gongnvlan},
+    escapeinside=``,
+    xleftmargin=4em,xrightmargin=1em, aboveskip=1em,
+    %ekatwhitespace = false,        
+    captionpos = b,    
+    extendedchars = false,    
+    framerule= 1.0pt,
+    rulecolor=\color{qianlan},
+    keepspaces=true,
+    otherkeywords={string},
+    numbers=left,
+    numbersep= 6pt,
+    numberstyle=\tiny\color{gold},
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    stepnumber=1,
+    stringstyle=\color{red},        % string literal style
+    tabsize=2,
+    breaklines = true
+}
+\uchyph=0
+\lefthyphenmin=2
+\righthyphenmin=2
+
+\title{MultiDalitz简介}
+\author{X.X Ma}
+\begin{document}
+
+\begin{CJK*}{UTF8}{gbsn}
+\maketitle
+\section{前言}
+这个软件包“MultiDalitz”专为$J/\psi \to e^{+} e^{-} K^{+} K^{-} \pi^{0}$ 而写。“Multi”意为多，“Dalitz”意为dalitz分析，合起来是多个dalitz的联合分波分析，这是由于$\eta(1405)$ 和$\eta(1475)$难分开，但是各自的dalitz动力学又迥然不同，必须同时对它们的dalit联合拟合。这个软件包目前放在GitHub上，可以任意获取使用。
+\section{软件包的安装}
+在shell的命令行，可以用git直接获取源程序
+\begin{lstlisting}[language=bash] 
+ git clone git@github.com:xxmawhu/MultiDalitz.git 
+\end{lstlisting}
+唯一的依赖是ROOT的环境，配置好ROOT环境后，可以直接编译后使用。
+\begin{lstlisting}[language=bash] 
+ cd MultiDalitz
+ make
+\end{lstlisting}
+\section{关于数学部分}
+数学、中英文皆可以混排。You can intersperse math, Chinese and English (Latin script) without adding extra environments.
+
+\end{CJK*}
+
+\end{document}
